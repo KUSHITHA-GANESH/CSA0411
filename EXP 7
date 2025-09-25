@@ -1,0 +1,96 @@
+#include <stdio.h>
+
+int main() {
+    int at[10], bt[10], pr[10];
+    int n, i, j, temp, time = 0, count, over = 0;
+    int sum_wait = 0, sum_turnaround = 0, start;
+    float avgwait, avgturn;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+        printf("Enter the Arrival time and Burst time for process %d: ", i + 1);
+        scanf("%d%d", &at[i], &bt[i]);
+        pr[i] = i + 1; // process ID
+    }
+
+    // Sort by arrival time
+    for (i = 0; i < n - 1; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (at[i] > at[j]) {
+                temp = at[i]; at[i] = at[j]; at[j] = temp;
+                temp = bt[i]; bt[i] = bt[j]; bt[j] = temp;
+                temp = pr[i]; pr[i] = pr[j]; pr[j] = temp;
+            }
+        }
+    }
+
+    printf("\nProcess\t| Arrival\t| Burst\t| Start\t| End\t| Waiting\t| Turnaround\n");
+    printf("-----------------------------------------------------------------------\n");
+
+    // Scheduling
+    while (over < n) {
+        count = 0;
+
+        // Count processes that have arrived
+        for (i = over; i < n; i++) {
+            if (at[i] <= time)
+                count++;
+            else
+                break;
+        }
+
+        // If more than 1 process is available, sort by burst time
+        if (count > 1) {
+            for (i = over; i < over + count - 1; i++) {
+                for (j = i + 1; j < over + count; j++) {
+                    if (bt[i] > bt[j]) {
+                        temp = at[i]; at[i] = at[j]; at[j] = temp;
+                        temp = bt[i]; bt[i] = bt[j]; bt[j] = temp;
+                        temp = pr[i]; pr[i] = pr[j]; pr[j] = temp;
+                    }
+                }
+            }
+        }
+
+        // If no process has arrived yet, move time forward
+        if (at[over] > time) {
+            time = at[over];
+        }
+
+        start = time;
+        time += bt[over];
+
+        printf("P[%d]\t| %d\t\t| %d\t| %d\t| %d\t| %d\t\t| %d\n",
+               pr[over], at[over], bt[over], start, time,
+               start - at[over], time - at[over]);
+
+        sum_wait += start - at[over];
+        sum_turnaround += time - at[over];
+        over++;
+    }
+
+    avgwait = (float) sum_wait / (float) n;
+    avgturn = (float) sum_turnaround / (float) n;
+
+    printf("\nAverage Waiting Time: %.2f", avgwait);
+    printf("\nAverage Turnaround Time: %.2f\n", avgturn);
+
+    return 0;
+}
+
+OUTPUPT:
+Enter the number of processes: 3
+Enter the Arrival time and Burst time for process 1: 0 5
+Enter the Arrival time and Burst time for process 2: 1 3
+Enter the Arrival time and Burst time for process 3: 2 8
+
+Process | Arrival | Burst | Start | End | Waiting | Turnaround
+-----------------------------------------------------------------------
+P[1]    | 0       | 5     | 0     | 5   | 0       | 5
+P[2]    | 1       | 3     | 5     | 8   | 4       | 7
+P[3]    | 2       | 8     | 8     | 16  | 6       | 14
+
+Average Waiting Time: 3.33
+Average Turnaround Time: 8.67
